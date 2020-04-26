@@ -146,7 +146,11 @@ fn main() -> anyhow::Result<()> {
                 let items = List::new(app.branches.items.iter().map(|x| Text::raw(x.clone())))
                     .block(Block::default().borders(Borders::ALL).title("Branches"))
                     .style(Style::default().fg(Color::Yellow))
-                    .highlight_style(Style::default().fg(Color::LightGreen).modifier(Modifier::BOLD))
+                    .highlight_style(
+                        Style::default()
+                            .fg(Color::LightGreen)
+                            .modifier(Modifier::BOLD),
+                    )
                     .highlight_symbol(">");
                 f.render_stateful_widget(items, chunks[1], &mut app.branches.state);
             }
@@ -168,8 +172,13 @@ fn main() -> anyhow::Result<()> {
         // Handle input
         match events.next()? {
             Event::Input(input) => match app.input_mode {
-                InputMode::Normal => {},
+                InputMode::Normal => {}
                 InputMode::Editing => match input {
+                    // exit
+                    Key::Esc | Key::Ctrl('c') => {
+                        break;
+                    }
+                    // press Enter
                     Key::Char('\n') => {
                         app.messages.push(app.input.drain(..).collect());
                     }
@@ -179,11 +188,11 @@ fn main() -> anyhow::Result<()> {
                     Key::Backspace => {
                         app.input.pop();
                     }
-                    Key::Esc | Key::Ctrl('c') => {
-                        break;
-                    }
-                    Key::Ctrl('n') => {
+                    Key::Ctrl('n') | Key::Down => {
                         app.branches.next();
+                    }
+                    Key::Ctrl('p') | Key::Up => {
+                        app.branches.previous();
                     }
                     _ => {}
                 },
