@@ -1,6 +1,6 @@
 use tui::widgets::ListState;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct StatefulList<T> {
     pub state: ListState,
     pub items: Vec<T>,
@@ -19,6 +19,11 @@ impl<T> StatefulList<T> {
             state: ListState::default(),
             items: items,
         }
+    }
+
+    pub fn set_items(&mut self, items: Vec<T>) {
+        self.items = items;
+        self.state.select(Some(0));
     }
 
     pub fn next(&mut self) {

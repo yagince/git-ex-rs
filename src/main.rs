@@ -12,7 +12,6 @@ use tui::{
     widgets::{Block, Borders, List, Paragraph, Text},
     Terminal,
 };
-
 use unicode_width::UnicodeWidthStr;
 
 use git2::Repository;
@@ -40,6 +39,7 @@ struct App {
     #[allow(dead_code)]
     repo: git2::Repository,
     branches: StatefulList<String>,
+    all_branches: Vec<String>,
 }
 
 impl App {
@@ -56,8 +56,19 @@ impl App {
             input_mode: InputMode::Editing,
             messages: Vec::new(),
             repo: repo,
+            all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
         })
+    }
+
+    pub fn refresh_branches(&mut self) {
+        self.branches.set_items(
+            self.all_branches
+                .iter()
+                .filter(|x| x.contains(&self.input))
+                .cloned()
+                .collect(),
+        );
     }
 }
 
@@ -67,15 +78,10 @@ const TEXT_INPUT_HEIGHT: u16 = 3;
 const LIST_WIDTH_PERCENTAGE: u16 = 40;
 
 fn main() -> anyhow::Result<()> {
-    println!("{:?}", env::current_dir()?);
     let repo = Repository::open(env::current_dir()?).expect("repo not found");
 
     // Create default app state
     let mut app = App::new(repo)?;
-    app.branches.next();
-    app.branches.next();
-    app.branches.next();
-    println!("{:?}", app.branches);
 
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
@@ -142,8 +148,9 @@ fn main() -> anyhow::Result<()> {
                     .block(Block::default().borders(Borders::ALL).title("Messages"));
                 f.render_widget(messages, chunks[0]);
 
+                let input = &app.input;
                 // branches
-                let items = List::new(app.branches.items.iter().map(|x| Text::raw(x.clone())))
+                let items = List::new(app.branches.items.iter().map(Text::raw))
                     .block(Block::default().borders(Borders::ALL).title("Branches"))
                     .style(Style::default().fg(Color::Yellow))
                     .highlight_style(
@@ -151,7 +158,7 @@ fn main() -> anyhow::Result<()> {
                             .fg(Color::LightGreen)
                             .modifier(Modifier::BOLD),
                     )
-                    .highlight_symbol(">");
+                    .highlight_symbol("➢ ");
                 f.render_stateful_widget(items, chunks[1], &mut app.branches.state);
             }
         })?;
@@ -181,12 +188,15 @@ fn main() -> anyhow::Result<()> {
                     // press Enter
                     Key::Char('\n') => {
                         app.messages.push(app.input.drain(..).collect());
+                        app.refresh_branches();
                     }
                     Key::Char(c) => {
                         app.input.push(c);
+                        app.refresh_branches();
                     }
                     Key::Backspace => {
                         app.input.pop();
+                        app.refresh_branches();
                     }
                     Key::Ctrl('n') | Key::Down => {
                         app.branches.next();

@@ -5,8 +5,9 @@ authors = ["yagince <straitwalk@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-tui = "=0.9.1"
-termion = "=1.5.5"
-anyhow = "=1.0.28"
-unicode-width = "=0.1.7"
-git2 = "=0.13.5"
+tui = "0.9"
+termion = "1.5"
+anyhow = "1.0"
+unicode-width = "0.1"
+git2 = "0.13"
+ansi_term = "0.12"
