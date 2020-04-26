@@ -148,7 +148,6 @@ fn main() -> anyhow::Result<()> {
                     .block(Block::default().borders(Borders::ALL).title("Messages"));
                 f.render_widget(messages, chunks[0]);
 
-                let input = &app.input;
                 // branches
                 let items = List::new(app.branches.items.iter().map(Text::raw))
                     .block(Block::default().borders(Borders::ALL).title("Branches"))
