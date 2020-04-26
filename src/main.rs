@@ -1,5 +1,5 @@
 use std::{
-    error::Error,
+    env,
     io::{self, Write},
 };
 use termion::{
@@ -8,19 +8,23 @@ use termion::{
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, Paragraph, Text},
     Terminal,
 };
+
+use unicode_width::UnicodeWidthStr;
+
+use git2::Repository;
 
 use gitex::util::{
     event::{Event, Events},
     StatefulList,
 };
 
-use unicode_width::UnicodeWidthStr;
-
+#[derive(Debug, Clone, PartialEq)]
 enum InputMode {
+    #[allow(dead_code)]
     Normal,
     Editing,
 }
@@ -33,15 +37,27 @@ struct App {
     input_mode: InputMode,
     /// History of recorded messages
     messages: Vec<String>,
+    #[allow(dead_code)]
+    repo: git2::Repository,
+    branches: StatefulList<String>,
 }
 
-impl Default for App {
-    fn default() -> App {
-        App {
-            input: String::new(),
+impl App {
+    pub fn new(repo: Repository) -> anyhow::Result<App> {
+        let branches = repo
+            .branches(Some(git2::BranchType::Local))?
+            .map(|x| {
+                let (branch, _) = x?;
+                Ok(branch.name()?.unwrap().to_owned())
+            })
+            .collect::<anyhow::Result<Vec<String>>>()?;
+        Ok(App {
+            input: "".to_owned(),
             input_mode: InputMode::Editing,
             messages: Vec::new(),
-        }
+            repo: repo,
+            branches: StatefulList::with_items(branches),
+        })
     }
 }
 
@@ -50,7 +66,17 @@ const HELP_MESSAGE_HEIGHT: u16 = 1;
 const TEXT_INPUT_HEIGHT: u16 = 3;
 const LIST_WIDTH_PERCENTAGE: u16 = 40;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<()> {
+    println!("{:?}", env::current_dir()?);
+    let repo = Repository::open(env::current_dir()?).expect("repo not found");
+
+    // Create default app state
+    let mut app = App::new(repo)?;
+    app.branches.next();
+    app.branches.next();
+    app.branches.next();
+    println!("{:?}", app.branches);
+
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -59,10 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     // Setup event handlers
-    let mut events = Events::new();
-
-    // Create default app state
-    let mut app = App::default();
+    let events = Events::new();
 
     loop {
         // Draw UI
@@ -118,6 +141,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let messages = List::new(messages)
                     .block(Block::default().borders(Borders::ALL).title("Messages"));
                 f.render_widget(messages, chunks[0]);
+
+                // branches
+                let items = List::new(app.branches.items.iter().map(|x| Text::raw(x.clone())))
+                    .block(Block::default().borders(Borders::ALL).title("Branches"))
+                    .style(Style::default().fg(Color::Yellow))
+                    .highlight_style(Style::default().fg(Color::LightGreen).modifier(Modifier::BOLD))
+                    .highlight_symbol(">");
+                f.render_stateful_widget(items, chunks[1], &mut app.branches.state);
             }
         })?;
 
@@ -137,16 +168,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Handle input
         match events.next()? {
             Event::Input(input) => match app.input_mode {
-                InputMode::Normal => match input {
-                    Key::Char('e') => {
-                        app.input_mode = InputMode::Editing;
-                        events.disable_exit_key();
-                    }
-                    Key::Char('q') => {
-                        break;
-                    }
-                    _ => {}
-                },
+                InputMode::Normal => {},
                 InputMode::Editing => match input {
                     Key::Char('\n') => {
                         app.messages.push(app.input.drain(..).collect());
@@ -159,6 +181,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     Key::Esc | Key::Ctrl('c') => {
                         break;
+                    }
+                    Key::Ctrl('n') => {
+                        app.branches.next();
                     }
                     _ => {}
                 },

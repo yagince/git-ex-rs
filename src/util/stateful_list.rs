@@ -1,5 +1,6 @@
 use tui::widgets::ListState;
 
+#[derive(Debug, Clone)]
 pub struct StatefulList<T> {
     pub state: ListState,
     pub items: Vec<T>,
