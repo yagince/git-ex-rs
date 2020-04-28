@@ -36,7 +36,13 @@ impl<T> StatefulList<T> {
                 let i = if i >= self.items.len() - 1 { 0 } else { i + 1 };
                 self.state.select(Some(i));
             }
-            None => self.unselect(),
+            None => {
+                if self.items.is_empty() {
+                    self.unselect()
+                } else {
+                    self.state.select(Some(0))
+                }
+            }
         }
     }
 
@@ -46,7 +52,13 @@ impl<T> StatefulList<T> {
                 let i = if i == 0 { self.items.len() - 1 } else { i - 1 };
                 self.state.select(Some(i));
             }
-            None => self.unselect(),
+            None => {
+                if self.items.is_empty() {
+                    self.unselect()
+                } else {
+                    self.state.select(Some(self.items.len() - 1))
+                }
+            }
         }
     }
 

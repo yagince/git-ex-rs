@@ -29,14 +29,10 @@ enum InputMode {
     Editing,
 }
 
-/// App holds the state of the application
 struct App {
-    /// Current value of the input box
     input: String,
-    /// Current input mode
     input_mode: InputMode,
-    /// History of recorded messages
-    messages: HashSet<String>,
+    selected: HashSet<String>,
     #[allow(dead_code)]
     repo: git2::Repository,
     branches: StatefulList<String>,
@@ -53,9 +49,9 @@ impl App {
             })
             .collect::<anyhow::Result<Vec<String>>>()?;
         Ok(App {
-            input: "".to_owned(),
+            input: String::new(),
             input_mode: InputMode::Editing,
-            messages: HashSet::new(),
+            selected: HashSet::new(),
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
@@ -139,15 +135,15 @@ fn main() -> anyhow::Result<()> {
                         .as_ref(),
                     )
                     .split(chunks[2]);
-                // messages
-                let messages = app
-                    .messages
+                // selected
+                let selected = app
+                    .selected
                     .iter()
                     .enumerate()
                     .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
-                let messages = List::new(messages)
-                    .block(Block::default().borders(Borders::ALL).title("Messages"));
-                f.render_widget(messages, chunks[0]);
+                let selected = List::new(selected)
+                    .block(Block::default().borders(Borders::ALL).title("Selected"));
+                f.render_widget(selected, chunks[0]);
 
                 // branches
                 let items = List::new(app.branches.items.iter().map(Text::raw))
@@ -188,7 +184,7 @@ fn main() -> anyhow::Result<()> {
                     // press Enter
                     Key::Char('\n') => {
                         if let Some(x) = app.branches.selected() {
-                            app.messages.insert(x.clone());
+                            app.selected.insert(x.clone());
                         }
                     }
                     Key::Char(c) => {
