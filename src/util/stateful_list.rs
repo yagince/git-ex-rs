@@ -53,4 +53,28 @@ impl<T> StatefulList<T> {
     pub fn unselect(&mut self) {
         self.state.select(None);
     }
+
+    pub fn selected(&self) -> Option<&T> {
+        self.state.selected().and_then(|i| self.items.get(i))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_selected() {
+        let mut list = StatefulList::with_items(
+            vec!["hoge", "foo", "bar"]
+                .into_iter()
+                .map(ToOwned::to_owned)
+                .collect(),
+        );
+        assert_eq!(list.selected(), None);
+
+        list.state.select(Some(1));
+
+        assert_eq!(list.selected(), Some(&"foo".to_owned()));
+    }
 }

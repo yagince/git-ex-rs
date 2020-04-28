@@ -1,6 +1,7 @@
 use std::{
     env,
     io::{self, Write},
+    collections::HashSet,
 };
 use termion::{
     cursor::Goto, event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen,
@@ -35,7 +36,7 @@ struct App {
     /// Current input mode
     input_mode: InputMode,
     /// History of recorded messages
-    messages: Vec<String>,
+    messages: HashSet<String>,
     #[allow(dead_code)]
     repo: git2::Repository,
     branches: StatefulList<String>,
@@ -54,7 +55,7 @@ impl App {
         Ok(App {
             input: "".to_owned(),
             input_mode: InputMode::Editing,
-            messages: Vec::new(),
+            messages: HashSet::new(),
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
@@ -186,8 +187,9 @@ fn main() -> anyhow::Result<()> {
                     }
                     // press Enter
                     Key::Char('\n') => {
-                        app.messages.push(app.input.drain(..).collect());
-                        app.refresh_branches();
+                        if let Some(x) = app.branches.selected() {
+                            app.messages.insert(x.clone());
+                        }
                     }
                     Key::Char(c) => {
                         app.input.push(c);
