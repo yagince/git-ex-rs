@@ -1,16 +1,16 @@
 use std::{
+    collections::HashSet,
     env,
     io::{self, Write},
-    collections::HashSet,
 };
 use termion::{
     cursor::Goto, event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen,
 };
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, Paragraph, Text},
+    widgets::{Block, Borders, Clear, List, Paragraph, Text},
     Terminal,
 };
 use unicode_width::UnicodeWidthStr;
@@ -18,6 +18,7 @@ use unicode_width::UnicodeWidthStr;
 use git2::Repository;
 
 use gitex::util::{
+    self,
     event::{Event, Events},
     StatefulList,
 };
@@ -37,6 +38,7 @@ struct App {
     repo: git2::Repository,
     branches: StatefulList<String>,
     all_branches: Vec<String>,
+    checkout: Option<String>,
 }
 
 impl App {
@@ -55,6 +57,7 @@ impl App {
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
+            checkout: None,
         })
     }
 
@@ -157,6 +160,25 @@ fn main() -> anyhow::Result<()> {
                     .highlight_symbol("➢ ");
                 f.render_stateful_widget(items, chunks[1], &mut app.branches.state);
             }
+
+            {
+                if let Some(ref checkout) = app.checkout {
+                    let text = [
+                        Text::raw("You checkout "),
+                        Text::styled(checkout, Style::default().fg(Color::Green)),
+                        Text::raw(" ?"),
+                    ];
+                    let paragraph = Paragraph::new(text.iter())
+                        .block(Block::default().title("Popup").borders(Borders::ALL))
+                        .alignment(Alignment::Left)
+                        .wrap(true);
+
+                    let area = util::centered_rect(60, 10, f.size());
+
+                    f.render_widget(Clear, area); //this clears out the background
+                    f.render_widget(paragraph, area);
+                }
+            }
         })?;
 
         // Put the cursor back inside the input box
@@ -178,9 +200,10 @@ fn main() -> anyhow::Result<()> {
                 InputMode::Normal => {}
                 InputMode::Editing => match input {
                     // exit
-                    Key::Esc | Key::Ctrl('c') => {
-                        break;
-                    }
+                    Key::Esc | Key::Ctrl('c') => match app.checkout {
+                        Some(_) => app.checkout = None,
+                        _ => break,
+                    },
                     // press Enter
                     Key::Char('\n') => {
                         if let Some(x) = app.branches.selected() {
@@ -200,6 +223,11 @@ fn main() -> anyhow::Result<()> {
                     }
                     Key::Ctrl('p') | Key::Up => {
                         app.branches.previous();
+                    }
+                    Key::Ctrl('o') => {
+                        if let Some(x) = app.selected.iter().next() {
+                            app.checkout = Some(x.to_owned());
+                        }
                     }
                     _ => {}
                 },
