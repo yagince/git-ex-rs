@@ -244,7 +244,7 @@ fn main() -> anyhow::Result<()> {
                         app.input.push(c);
                         app.refresh_branches();
                     }
-                    Key::Backspace => {
+                    Key::Ctrl('h') | Key::Backspace | Key::Delete => {
                         app.input.pop();
                         app.refresh_branches();
                     }
