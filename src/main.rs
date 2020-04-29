@@ -17,7 +17,7 @@ use unicode_width::UnicodeWidthStr;
 
 use git2::Repository;
 
-use gitex::util::{
+use git_ex::util::{
     self,
     event::{Event, Events},
     StatefulList,
