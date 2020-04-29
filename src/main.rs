@@ -25,9 +25,8 @@ use gitex::util::{
 
 #[derive(Debug, Clone, PartialEq)]
 enum InputMode {
-    #[allow(dead_code)]
-    Normal,
-    Editing,
+    Command,
+    Search,
 }
 
 struct App {
@@ -52,7 +51,7 @@ impl App {
             .collect::<anyhow::Result<Vec<String>>>()?;
         Ok(App {
             input: String::new(),
-            input_mode: InputMode::Editing,
+            input_mode: InputMode::Search,
             selected: HashSet::new(),
             repo: repo,
             all_branches: branches.clone(),
@@ -110,8 +109,8 @@ fn main() -> anyhow::Result<()> {
                 .split(f.size());
 
             let msg = match app.input_mode {
-                InputMode::Normal => "Press q to exit, e to start editing.",
-                InputMode::Editing => "Press Esc or Ctrl+c to exit, Enter to record the message",
+                InputMode::Command => "Press q or Ctrl+c to exit, e to start search mode.",
+                InputMode::Search => "Press Esc or Ctrl+c to exit, Enter to record the message",
             };
 
             // help message
@@ -197,8 +196,14 @@ fn main() -> anyhow::Result<()> {
         // Handle input
         match events.next()? {
             Event::Input(input) => match app.input_mode {
-                InputMode::Normal => {}
-                InputMode::Editing => match input {
+                InputMode::Command => match input {
+                    Key::Esc | Key::Char('q') | Key::Ctrl('c') => {
+                        app.input_mode = InputMode::Search;
+                        app.checkout = None;
+                    }
+                    _ => {}
+                },
+                InputMode::Search => match input {
                     // exit
                     Key::Esc | Key::Ctrl('c') => match app.checkout {
                         Some(_) => app.checkout = None,
@@ -227,6 +232,7 @@ fn main() -> anyhow::Result<()> {
                     Key::Ctrl('o') => {
                         if let Some(x) = app.selected.iter().next() {
                             app.checkout = Some(x.to_owned());
+                            app.input_mode = InputMode::Command;
                         }
                     }
                     _ => {}
