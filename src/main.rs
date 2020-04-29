@@ -89,15 +89,19 @@ impl App {
         self.branches.selected()
     }
 
-    pub fn run_command(&self) {
+    pub fn run_command(&self) -> anyhow::Result<()> {
         match self.input_mode {
             InputMode::Command(command) => match command {
                 Command::Checkout => {
+                    if let Some(ref branch) = self.selected_branch() {
+                        self.repo.set_head(&util::to_refs(branch))?;
+                    }
                 }
                 _ => {}
             }
             _ => {}
         }
+        Ok(())
     }
 }
 
@@ -241,6 +245,10 @@ fn main() -> anyhow::Result<()> {
                 InputMode::Command(_) => match input {
                     Key::Esc | Key::Char('q') | Key::Ctrl('c') => {
                         app.search_mode();
+                    }
+                    Key::Char('y') => {
+                        app.run_command()?;
+                        break;
                     }
                     _ => {}
                 },
