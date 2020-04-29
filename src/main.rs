@@ -23,10 +23,17 @@ use gitex::util::{
     StatefulList,
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Copy)]
 enum InputMode {
-    Command,
+    Command(Command),
     Search,
+}
+
+#[derive(Debug, Clone, PartialEq, Copy)]
+enum Command {
+    Checkout,
+    #[allow(dead_code)]
+    DeleteBranch,
 }
 
 struct App {
@@ -37,7 +44,6 @@ struct App {
     repo: git2::Repository,
     branches: StatefulList<String>,
     all_branches: Vec<String>,
-    checkout: Option<String>,
 }
 
 impl App {
@@ -56,7 +62,6 @@ impl App {
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
-            checkout: None,
         })
     }
 
@@ -68,6 +73,16 @@ impl App {
                 .cloned()
                 .collect(),
         );
+    }
+
+    pub fn checkout_mode(&mut self) {
+        if self.selected.iter().next().is_some() {
+            self.input_mode = InputMode::Command(Command::Checkout);
+        }
+    }
+
+    pub fn search_mode(&mut self) {
+        self.input_mode = InputMode::Search;
     }
 }
 
@@ -109,8 +124,8 @@ fn main() -> anyhow::Result<()> {
                 .split(f.size());
 
             let msg = match app.input_mode {
-                InputMode::Command => "Press q or Ctrl+c to exit, e to start search mode.",
-                InputMode::Search => "Press Esc or Ctrl+c to exit, Enter to record the message",
+                InputMode::Command(_) => "Press q or Ctrl+c to exit, e to start search mode.",
+                InputMode::Search => "Press Esc or Ctrl+c to exit, Enter to record the message.",
             };
 
             // help message
@@ -161,21 +176,33 @@ fn main() -> anyhow::Result<()> {
             }
 
             {
-                if let Some(ref checkout) = app.checkout {
-                    let text = [
-                        Text::raw("Would you like to checkout "),
-                        Text::styled(checkout, Style::default().fg(Color::Green)),
-                        Text::raw(" ?"),
-                    ];
-                    let paragraph = Paragraph::new(text.iter())
-                        .block(Block::default().title("Checkout Branch").borders(Borders::ALL))
-                        .alignment(Alignment::Left)
-                        .wrap(true);
+                match app.input_mode {
+                    InputMode::Command(command) => match command {
+                        Command::Checkout => {
+                            if let Some(ref branch_name) = app.selected.iter().next() {
+                                let text = [
+                                    Text::raw("Would you like to checkout "),
+                                    Text::styled(*branch_name, Style::default().fg(Color::Green)),
+                                    Text::raw(" ?"),
+                                ];
+                                let paragraph = Paragraph::new(text.iter())
+                                    .block(
+                                        Block::default()
+                                            .title("Checkout Branch")
+                                            .borders(Borders::ALL),
+                                    )
+                                    .alignment(Alignment::Left)
+                                    .wrap(true);
 
-                    let area = util::centered_rect(60, 10, f.size());
+                                let area = util::centered_rect(60, 10, f.size());
 
-                    f.render_widget(Clear, area); //this clears out the background
-                    f.render_widget(paragraph, area);
+                                f.render_widget(Clear, area); //this clears out the background
+                                f.render_widget(paragraph, area);
+                            }
+                        }
+                        _ => {}
+                    },
+                    _ => {}
                 }
             }
         })?;
@@ -196,19 +223,17 @@ fn main() -> anyhow::Result<()> {
         // Handle input
         match events.next()? {
             Event::Input(input) => match app.input_mode {
-                InputMode::Command => match input {
+                InputMode::Command(_) => match input {
                     Key::Esc | Key::Char('q') | Key::Ctrl('c') => {
-                        app.input_mode = InputMode::Search;
-                        app.checkout = None;
+                        app.search_mode();
                     }
                     _ => {}
                 },
                 InputMode::Search => match input {
                     // exit
-                    Key::Esc | Key::Ctrl('c') => match app.checkout {
-                        Some(_) => app.checkout = None,
-                        _ => break,
-                    },
+                    Key::Esc | Key::Ctrl('c') => {
+                        break;
+                    }
                     // press Enter
                     Key::Char('\n') => {
                         if let Some(x) = app.branches.selected() {
@@ -230,10 +255,7 @@ fn main() -> anyhow::Result<()> {
                         app.branches.previous();
                     }
                     Key::Ctrl('o') => {
-                        if let Some(x) = app.selected.iter().next() {
-                            app.checkout = Some(x.to_owned());
-                            app.input_mode = InputMode::Command;
-                        }
+                        app.checkout_mode();
                     }
                     _ => {}
                 },
