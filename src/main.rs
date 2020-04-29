@@ -32,6 +32,7 @@ enum InputMode {
 #[derive(Debug, Clone, PartialEq, Copy)]
 enum Command {
     Checkout,
+    Log,
     #[allow(dead_code)]
     DeleteBranch,
 }
@@ -85,6 +86,10 @@ impl App {
         self.input_mode = InputMode::Search;
     }
 
+    pub fn log_mode(&mut self) {
+        self.input_mode = InputMode::Command(Command::Log);
+    }
+
     pub fn selected_branch(&self) -> Option<&String> {
         self.branches.selected()
     }
@@ -106,9 +111,7 @@ impl App {
         if let Some(ref branch) = self.selected_branch() {
             self.repo
                 .find_branch(branch, git2::BranchType::Local)
-                .and_then(|branch| {
-                    self.repo.set_head(branch.get().name().unwrap())
-                })?;
+                .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))?;
         }
         Ok(())
     }
@@ -228,6 +231,42 @@ fn main() -> anyhow::Result<()> {
                                 f.render_widget(paragraph, area);
                             }
                         }
+                        Command::Log => {
+                            if let Some(ref branch_name) = app.selected_branch() {
+                                let text = app
+                                    .repo
+                                    .find_branch(branch_name, git2::BranchType::Local)
+                                    .and_then(|branch| {
+                                        app.repo.reflog(branch.get().name().unwrap())
+                                    })
+                                    .map(|reflog| {
+                                        reflog
+                                            .iter()
+                                            .flat_map(|x| {
+                                                vec![
+                                                    Text::styled(
+                                                        "-- ",
+                                                        Style::default().fg(Color::Green),
+                                                    ),
+                                                    Text::raw(x.message().unwrap().to_owned()),
+                                                    Text::raw("\n"),
+                                                ]
+                                            })
+                                            .collect::<Vec<_>>()
+                                    })
+                                    .unwrap();
+
+                                let paragraph = Paragraph::new(text.iter())
+                                    .block(Block::default().title("Log").borders(Borders::ALL))
+                                    .alignment(Alignment::Left)
+                                    .wrap(true);
+
+                                let area = util::centered_rect(60, 50, f.size());
+
+                                f.render_widget(Clear, area); //this clears out the background
+                                f.render_widget(paragraph, area);
+                            }
+                        }
                         _ => {}
                     },
                     _ => {}
@@ -288,6 +327,9 @@ fn main() -> anyhow::Result<()> {
                     }
                     Key::Ctrl('o') => {
                         app.checkout_mode();
+                    }
+                    Key::Ctrl('l') => {
+                        app.log_mode();
                     }
                     _ => {}
                 },
