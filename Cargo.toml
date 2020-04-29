@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["yagince <straitwalk@gmail.com>"]
 edition = "2018"
 
+[[bin]]
+name = "git-ex"
+path = "src/main.rs"
+
 [dependencies]
 tui = "0.9"
 termion = "1.5"
