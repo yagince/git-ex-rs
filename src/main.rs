@@ -163,12 +163,12 @@ fn main() -> anyhow::Result<()> {
             {
                 if let Some(ref checkout) = app.checkout {
                     let text = [
-                        Text::raw("You checkout "),
+                        Text::raw("Would you like to checkout "),
                         Text::styled(checkout, Style::default().fg(Color::Green)),
                         Text::raw(" ?"),
                     ];
                     let paragraph = Paragraph::new(text.iter())
-                        .block(Block::default().title("Popup").borders(Borders::ALL))
+                        .block(Block::default().title("Checkout Branch").borders(Borders::ALL))
                         .alignment(Alignment::Left)
                         .wrap(true);
 
