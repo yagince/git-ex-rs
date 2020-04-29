@@ -137,16 +137,6 @@ fn main() -> anyhow::Result<()> {
                         .as_ref(),
                     )
                     .split(chunks[2]);
-                // selected
-                let selected = app
-                    .selected
-                    .iter()
-                    .enumerate()
-                    .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
-                let selected = List::new(selected)
-                    .block(Block::default().borders(Borders::ALL).title("Selected"));
-                f.render_widget(selected, chunks[0]);
-
                 // branches
                 let items = List::new(app.branches.items.iter().map(Text::raw))
                     .block(Block::default().borders(Borders::ALL).title("Branches"))
@@ -157,7 +147,17 @@ fn main() -> anyhow::Result<()> {
                             .modifier(Modifier::BOLD),
                     )
                     .highlight_symbol("➢ ");
-                f.render_stateful_widget(items, chunks[1], &mut app.branches.state);
+                f.render_stateful_widget(items, chunks[0], &mut app.branches.state);
+
+                // selected
+                let selected = app
+                    .selected
+                    .iter()
+                    .enumerate()
+                    .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
+                let selected = List::new(selected)
+                    .block(Block::default().borders(Borders::ALL).title("Selected"));
+                f.render_widget(selected, chunks[1]);
             }
 
             {
