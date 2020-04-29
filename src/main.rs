@@ -93,13 +93,22 @@ impl App {
         match self.input_mode {
             InputMode::Command(command) => match command {
                 Command::Checkout => {
-                    if let Some(ref branch) = self.selected_branch() {
-                        self.repo.set_head(&util::to_refs(branch))?;
-                    }
+                    self.run_checkout()?;
                 }
                 _ => {}
-            }
+            },
             _ => {}
+        }
+        Ok(())
+    }
+
+    fn run_checkout(&self) -> anyhow::Result<()> {
+        if let Some(ref branch) = self.selected_branch() {
+            self.repo
+                .find_branch(branch, git2::BranchType::Local)
+                .and_then(|branch| {
+                    self.repo.set_head(branch.get().name().unwrap())
+                })?;
         }
         Ok(())
     }
