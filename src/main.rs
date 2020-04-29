@@ -76,13 +76,28 @@ impl App {
     }
 
     pub fn checkout_mode(&mut self) {
-        if self.selected.iter().next().is_some() {
+        if self.selected_branch().is_some() {
             self.input_mode = InputMode::Command(Command::Checkout);
         }
     }
 
     pub fn search_mode(&mut self) {
         self.input_mode = InputMode::Search;
+    }
+
+    pub fn selected_branch(&self) -> Option<&String> {
+        self.branches.selected()
+    }
+
+    pub fn run_command(&self) {
+        match self.input_mode {
+            InputMode::Command(command) => match command {
+                Command::Checkout => {
+                }
+                _ => {}
+            }
+            _ => {}
+        }
     }
 }
 
@@ -179,7 +194,7 @@ fn main() -> anyhow::Result<()> {
                 match app.input_mode {
                     InputMode::Command(command) => match command {
                         Command::Checkout => {
-                            if let Some(ref branch_name) = app.selected.iter().next() {
+                            if let Some(ref branch_name) = app.selected_branch() {
                                 let text = [
                                     Text::raw("Would you like to checkout "),
                                     Text::styled(*branch_name, Style::default().fg(Color::Green)),
