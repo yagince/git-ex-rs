@@ -18,6 +18,27 @@ pub enum Command {
     DeleteBranch,
 }
 
+impl Command {
+    pub fn run(&self, app: &App) -> anyhow::Result<()> {
+        match self {
+            Command::Checkout => {
+                Self::run_checkout(app)?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn run_checkout(app: &App) -> anyhow::Result<()> {
+        if let Some(ref branch) = app.selected_branch() {
+            app.repo
+                .find_branch(branch, git2::BranchType::Local)
+                .and_then(|branch| app.repo.set_head(branch.get().name().unwrap()))?;
+        }
+        Ok(())
+    }
+}
+
 pub struct App {
     pub input: String,
     pub input_mode: InputMode,
@@ -76,22 +97,8 @@ impl App {
 
     pub fn run_command(&self) -> anyhow::Result<()> {
         match self.input_mode {
-            InputMode::Command(command) => match command {
-                Command::Checkout => {
-                    self.run_checkout()?;
-                }
-                _ => {}
-            },
+            InputMode::Command(command) => command.run(self)?,
             _ => {}
-        }
-        Ok(())
-    }
-
-    fn run_checkout(&self) -> anyhow::Result<()> {
-        if let Some(ref branch) = self.selected_branch() {
-            self.repo
-                .find_branch(branch, git2::BranchType::Local)
-                .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))?;
         }
         Ok(())
     }

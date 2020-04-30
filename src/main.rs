@@ -92,6 +92,7 @@ fn main() -> anyhow::Result<()> {
                         .as_ref(),
                     )
                     .split(chunks[2]);
+
                 // branches
                 let items = List::new(app.branches.items.iter().map(Text::raw))
                     .block(Block::default().borders(Borders::ALL).title("Branches"))
