@@ -5,6 +5,8 @@ on:
     types:
       - created
 
+env:
+  RUST_VERSION: 1.43.0
 jobs:
   publish:
     runs-on: ${{ matrix.os }}
@@ -26,22 +28,16 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-
       - name: Build release binary
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target=${{ matrix.target }}
+        if: matrix.target == x86_64-unknown-linux-musl
+        run: |
+          docker run --rm -i \
+            --volume ${PWD}:/root/src \
+            --workdir /root/src \
+            joseluisq/rust-linux-darwin-builder:${RUST_VERSION} \
 
       - name: Package release
-        run: tar -czf ytop-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz -C ./target/${{ matrix.target }}/release/git-ex
+        run: tar -czf git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz -C ./target/${{ matrix.target }}/release/git-ex
 
       - name: Upload release asset
         uses: actions/upload-release-asset@v1.0.1
@@ -49,6 +45,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ytop-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz
-          asset_name: ytop-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz
+          asset_path: git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz
+          asset_name: git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz
           asset_content_type: application/zip
