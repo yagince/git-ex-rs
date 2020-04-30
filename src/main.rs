@@ -201,7 +201,7 @@ fn main() -> anyhow::Result<()> {
         match events.next()? {
             Event::Input(input) => match app.input_mode {
                 InputMode::Command(_) => match input {
-                    Key::Esc | Key::Char('q') | Key::Ctrl('c') => {
+                    Key::Esc | Key::Ctrl('c') | Key::Char('n') | Key::Char('q') => {
                         app.search_mode();
                     }
                     Key::Char('y') => {
