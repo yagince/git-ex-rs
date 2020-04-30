@@ -14,6 +14,7 @@ pub enum InputMode {
 pub enum Command {
     Checkout,
     Log,
+    Help,
     #[allow(dead_code)]
     DeleteBranch,
 }
@@ -89,6 +90,10 @@ impl App {
 
     pub fn log_mode(&mut self) {
         self.input_mode = InputMode::Command(Command::Log);
+    }
+
+    pub fn help_mode(&mut self) {
+        self.input_mode = InputMode::Command(Command::Help);
     }
 
     pub fn selected_branch(&self) -> Option<&String> {

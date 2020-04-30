@@ -9,7 +9,7 @@ use tui::{
     backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, Clear, List, Paragraph, Text},
+    widgets::{Block, BorderType, Borders, Clear, List, Paragraph, Text},
     Terminal,
 };
 use unicode_width::UnicodeWidthStr;
@@ -18,12 +18,11 @@ use git2::Repository;
 
 use git_ex::{
     app::App,
-    InputMode,
-    Command,
     util::{
         self,
         event::{Event, Events},
     },
+    Command, InputMode,
 };
 
 const TOP_MARGIN: u16 = 1;
@@ -65,7 +64,9 @@ fn main() -> anyhow::Result<()> {
 
             let msg = match app.input_mode {
                 InputMode::Command(_) => "Press q or Ctrl+c to exit, e to start search mode.",
-                InputMode::Search => "Press Esc or Ctrl+c to exit, Enter to record the message.",
+                InputMode::Search => {
+                    "Press Esc or Ctrl+c to exit, Enter to record the message. (Help: Alt+h)"
+                }
             };
 
             // help message
@@ -119,6 +120,37 @@ fn main() -> anyhow::Result<()> {
             {
                 match app.input_mode {
                     InputMode::Command(command) => match command {
+                        Command::Help => {
+                            let text = [
+                                // Help
+                                Text::styled("Show Help      ", Style::default().fg(Color::Green)),
+                                Text::raw(": Alt+h"),
+                                Text::raw("\n"),
+                                // Checkout
+                                Text::styled("Checkout Branch", Style::default().fg(Color::Green)),
+                                Text::raw(": Ctrl+o"),
+                                Text::raw("\n"),
+                                // Log
+                                Text::styled("Show log       ", Style::default().fg(Color::Green)),
+                                Text::raw(": Ctrl+l"),
+                                Text::raw("\n"),
+                            ];
+                            let paragraph = Paragraph::new(text.iter())
+                                .block(
+                                    Block::default()
+                                        .title("  Help  ")
+                                        .borders(Borders::ALL)
+                                        .border_type(BorderType::Double)
+                                        .border_style(Style::default().fg(Color::Cyan)),
+                                )
+                                .alignment(Alignment::Left)
+                                .wrap(true);
+
+                            let area = util::centered_rect(50, 60, f.size());
+
+                            f.render_widget(Clear, area); //this clears out the background
+                            f.render_widget(paragraph, area);
+                        }
                         Command::Checkout => {
                             if let Some(ref branch_name) = app.selected_branch() {
                                 let text = [
@@ -240,6 +272,9 @@ fn main() -> anyhow::Result<()> {
                     }
                     Key::Ctrl('l') => {
                         app.log_mode();
+                    }
+                    Key::Alt('h') => {
+                        app.help_mode();
                     }
                     _ => {}
                 },
