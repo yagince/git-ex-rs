@@ -31,13 +31,14 @@ jobs:
       - name: Build release binary
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: |
-          docker run --rm -i \
+          docker run --rm -it \
             --volume ${PWD}:/root/src \
             --workdir /root/src \
             joseluisq/rust-linux-darwin-builder:${RUST_VERSION} \
+          && ls -al target
 
       - name: Package release
-        run: tar -czf git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz -C ./target/${{ matrix.target }}/release/git-ex
+        run: tar -czf git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz -C ./target/${{ matrix.target }}/release/ git-ex
 
       - name: Upload release asset
         uses: actions/upload-release-asset@v1.0.1
