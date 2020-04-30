@@ -31,7 +31,7 @@ jobs:
       - name: Build release binary
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: |
-          docker run --rm -it \
+          docker run --rm -i \
             --volume ${PWD}:/root/src \
             --workdir /root/src \
             joseluisq/rust-linux-darwin-builder:${RUST_VERSION} \
