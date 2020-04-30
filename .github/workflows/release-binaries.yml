@@ -35,6 +35,7 @@ jobs:
             --volume ${PWD}:/root/src \
             --workdir /root/src \
             joseluisq/rust-linux-darwin-builder:${RUST_VERSION} \
+            cargo build --release \
           && ls -al target
 
       - name: Package release
