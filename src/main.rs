@@ -1,5 +1,4 @@
 use std::{
-    collections::HashSet,
     env,
     io::{self, Write},
 };
@@ -17,105 +16,15 @@ use unicode_width::UnicodeWidthStr;
 
 use git2::Repository;
 
-use git_ex::util::{
-    self,
-    event::{Event, Events},
-    StatefulList,
+use git_ex::{
+    app::App,
+    InputMode,
+    Command,
+    util::{
+        self,
+        event::{Event, Events},
+    },
 };
-
-#[derive(Debug, Clone, PartialEq, Copy)]
-enum InputMode {
-    Command(Command),
-    Search,
-}
-
-#[derive(Debug, Clone, PartialEq, Copy)]
-enum Command {
-    Checkout,
-    Log,
-    #[allow(dead_code)]
-    DeleteBranch,
-}
-
-struct App {
-    input: String,
-    input_mode: InputMode,
-    selected: HashSet<String>,
-    #[allow(dead_code)]
-    repo: git2::Repository,
-    branches: StatefulList<String>,
-    all_branches: Vec<String>,
-}
-
-impl App {
-    pub fn new(repo: Repository) -> anyhow::Result<App> {
-        let branches = repo
-            .branches(Some(git2::BranchType::Local))?
-            .map(|x| {
-                let (branch, _) = x?;
-                Ok(branch.name()?.unwrap().to_owned())
-            })
-            .collect::<anyhow::Result<Vec<String>>>()?;
-        Ok(App {
-            input: String::new(),
-            input_mode: InputMode::Search,
-            selected: HashSet::new(),
-            repo: repo,
-            all_branches: branches.clone(),
-            branches: StatefulList::with_items(branches),
-        })
-    }
-
-    pub fn refresh_branches(&mut self) {
-        self.branches.set_items(
-            self.all_branches
-                .iter()
-                .filter(|x| x.contains(&self.input))
-                .cloned()
-                .collect(),
-        );
-    }
-
-    pub fn checkout_mode(&mut self) {
-        if self.selected_branch().is_some() {
-            self.input_mode = InputMode::Command(Command::Checkout);
-        }
-    }
-
-    pub fn search_mode(&mut self) {
-        self.input_mode = InputMode::Search;
-    }
-
-    pub fn log_mode(&mut self) {
-        self.input_mode = InputMode::Command(Command::Log);
-    }
-
-    pub fn selected_branch(&self) -> Option<&String> {
-        self.branches.selected()
-    }
-
-    pub fn run_command(&self) -> anyhow::Result<()> {
-        match self.input_mode {
-            InputMode::Command(command) => match command {
-                Command::Checkout => {
-                    self.run_checkout()?;
-                }
-                _ => {}
-            },
-            _ => {}
-        }
-        Ok(())
-    }
-
-    fn run_checkout(&self) -> anyhow::Result<()> {
-        if let Some(ref branch) = self.selected_branch() {
-            self.repo
-                .find_branch(branch, git2::BranchType::Local)
-                .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))?;
-        }
-        Ok(())
-    }
-}
 
 const TOP_MARGIN: u16 = 1;
 const HELP_MESSAGE_HEIGHT: u16 = 1;
