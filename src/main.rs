@@ -29,6 +29,7 @@ const TOP_MARGIN: u16 = 1;
 const HELP_MESSAGE_HEIGHT: u16 = 1;
 const TEXT_INPUT_HEIGHT: u16 = 3;
 const LIST_WIDTH_PERCENTAGE: u16 = 40;
+const LOG_LIMIT: usize = 30;
 
 fn main() -> anyhow::Result<()> {
     let repo = Repository::open(env::current_dir()?).expect("repo not found");
@@ -176,27 +177,21 @@ fn main() -> anyhow::Result<()> {
                         Command::Log => {
                             if let Some(ref branch_name) = app.selected_branch() {
                                 let text = app
-                                    .repo
-                                    .find_branch(branch_name, git2::BranchType::Local)
-                                    .and_then(|branch| {
-                                        app.repo.reflog(branch.get().name().unwrap())
+                                    ._repo
+                                    .logs(branch_name, LOG_LIMIT)
+                                    .unwrap()
+                                    .into_iter()
+                                    .flat_map(|log| {
+                                        vec![
+                                            Text::styled(
+                                                log.id,
+                                                Style::default().fg(Color::Yellow),
+                                            ),
+                                            Text::raw(" "),
+                                            Text::raw(log.message),
+                                        ]
                                     })
-                                    .map(|reflog| {
-                                        reflog
-                                            .iter()
-                                            .flat_map(|x| {
-                                                vec![
-                                                    Text::styled(
-                                                        "-- ",
-                                                        Style::default().fg(Color::Green),
-                                                    ),
-                                                    Text::raw(x.message().unwrap().to_owned()),
-                                                    Text::raw("\n"),
-                                                ]
-                                            })
-                                            .collect::<Vec<_>>()
-                                    })
-                                    .unwrap();
+                                    .collect::<Vec<_>>();
 
                                 let paragraph = Paragraph::new(text.iter())
                                     .block(Block::default().title("Log").borders(Borders::ALL))

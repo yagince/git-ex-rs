@@ -45,6 +45,7 @@ pub struct App {
     pub input_mode: InputMode,
     pub selected: HashSet<String>,
     pub repo: git2::Repository,
+    pub _repo: crate::git::Repository,
     pub branches: StatefulList<String>,
     pub all_branches: Vec<String>,
 }
@@ -62,6 +63,7 @@ impl App {
             input: String::new(),
             input_mode: InputMode::Search,
             selected: HashSet::new(),
+            _repo: crate::git::Repository::new(repo.path().to_owned())?,
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),
