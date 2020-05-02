@@ -7,9 +7,9 @@ use termion::{
 };
 use tui::{
     backend::TermionBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, BorderType, Borders, Clear, List, Paragraph, Text},
+    widgets::{Block, Borders, List, Paragraph, Text},
     Terminal,
 };
 use unicode_width::UnicodeWidthStr;
@@ -18,10 +18,8 @@ use git2::Repository;
 
 use git_ex::{
     app::App,
-    util::{
-        self,
-        event::{Event, Events},
-    },
+    component,
+    util::event::{Event, Events},
     Command, InputMode,
 };
 
@@ -122,86 +120,17 @@ fn main() -> anyhow::Result<()> {
                 match app.input_mode {
                     InputMode::Command(command) => match command {
                         Command::Help => {
-                            let text = [
-                                // Help
-                                Text::styled("Show Help      ", Style::default().fg(Color::Green)),
-                                Text::raw(": Alt+h"),
-                                Text::raw("\n"),
-                                // Checkout
-                                Text::styled("Checkout Branch", Style::default().fg(Color::Green)),
-                                Text::raw(": Ctrl+o"),
-                                Text::raw("\n"),
-                                // Log
-                                Text::styled("Show log       ", Style::default().fg(Color::Green)),
-                                Text::raw(": Ctrl+l"),
-                                Text::raw("\n"),
-                            ];
-                            let paragraph = Paragraph::new(text.iter())
-                                .block(
-                                    Block::default()
-                                        .title("  Help  ")
-                                        .borders(Borders::ALL)
-                                        .border_type(BorderType::Double)
-                                        .border_style(Style::default().fg(Color::Cyan)),
-                                )
-                                .alignment(Alignment::Left)
-                                .wrap(true);
-
-                            let area = util::centered_rect(50, 60, f.size());
-
-                            f.render_widget(Clear, area); //this clears out the background
-                            f.render_widget(paragraph, area);
+                            component::Help::render(&mut f);
                         }
                         Command::Checkout => {
                             if let Some(ref branch_name) = app.selected_branch() {
-                                let text = [
-                                    Text::raw("Would you like to checkout "),
-                                    Text::styled(*branch_name, Style::default().fg(Color::Green)),
-                                    Text::raw(" ?"),
-                                ];
-                                let paragraph = Paragraph::new(text.iter())
-                                    .block(
-                                        Block::default()
-                                            .title("Checkout Branch")
-                                            .borders(Borders::ALL),
-                                    )
-                                    .alignment(Alignment::Left)
-                                    .wrap(true);
-
-                                let area = util::centered_rect(60, 10, f.size());
-
-                                f.render_widget(Clear, area); //this clears out the background
-                                f.render_widget(paragraph, area);
+                                component::CheckoutConfirmation::render(&mut f, branch_name);
                             }
                         }
                         Command::Log => {
                             if let Some(ref branch_name) = app.selected_branch() {
-                                let text = app
-                                    ._repo
-                                    .logs(branch_name, LOG_LIMIT)
-                                    .unwrap()
-                                    .into_iter()
-                                    .flat_map(|log| {
-                                        vec![
-                                            Text::styled(
-                                                log.id,
-                                                Style::default().fg(Color::Yellow),
-                                            ),
-                                            Text::raw(" "),
-                                            Text::raw(log.message),
-                                        ]
-                                    })
-                                    .collect::<Vec<_>>();
-
-                                let paragraph = Paragraph::new(text.iter())
-                                    .block(Block::default().title("Log").borders(Borders::ALL))
-                                    .alignment(Alignment::Left)
-                                    .wrap(true);
-
-                                let area = util::centered_rect(60, 50, f.size());
-
-                                f.render_widget(Clear, area); //this clears out the background
-                                f.render_widget(paragraph, area);
+                                let commits = app._repo.logs(branch_name, LOG_LIMIT).unwrap();
+                                component::Logs::render(&mut f, commits);
                             }
                         }
                         _ => {}
