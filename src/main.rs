@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
                     Key::Esc | Key::Ctrl('c') | Key::Char('n') | Key::Char('q') => {
                         app.search_mode();
                     }
-                    Key::Char('y') => {
+                    Key::Char('y') | Key::Char('\n') => {
                         app.run_command()?;
                         break;
                     }

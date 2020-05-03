@@ -15,6 +15,11 @@ impl CheckoutConfirmation {
             Text::raw("Would you like to checkout "),
             Text::styled(branch_name.to_owned(), Style::default().fg(Color::Green)),
             Text::raw(" ?"),
+            Text::raw("\n\n"),
+            Text::raw("Enter: "),
+            Text::styled("y", Style::default().fg(Color::Green)),
+            Text::raw(" or "),
+            Text::styled("n", Style::default().fg(Color::LightMagenta)),
         ];
         let paragraph = Paragraph::new(text.iter())
             .block(
