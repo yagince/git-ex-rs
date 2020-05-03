@@ -1,6 +1,7 @@
-use std::collections::HashSet;
-
-use git2::Repository;
+use std::{
+    path::Path,
+    collections::HashSet,
+};
 
 use crate::util::StatefulList;
 
@@ -32,9 +33,7 @@ impl Command {
 
     fn run_checkout(app: &App) -> anyhow::Result<()> {
         if let Some(ref branch) = app.selected_branch() {
-            app.repo
-                .find_branch(branch, git2::BranchType::Local)
-                .and_then(|branch| app.repo.set_head(branch.get().name().unwrap()))?;
+            app.repo.checkout(branch)?;
         }
         Ok(())
     }
@@ -44,26 +43,20 @@ pub struct App {
     pub input: String,
     pub input_mode: InputMode,
     pub selected: HashSet<String>,
-    pub repo: git2::Repository,
-    pub _repo: crate::git::Repository,
+    pub repo: crate::git::Repository,
     pub branches: StatefulList<String>,
     pub all_branches: Vec<String>,
 }
 
 impl App {
-    pub fn new(repo: Repository) -> anyhow::Result<App> {
-        let branches = repo
-            .branches(Some(git2::BranchType::Local))?
-            .map(|x| {
-                let (branch, _) = x?;
-                Ok(branch.name()?.unwrap().to_owned())
-            })
-            .collect::<anyhow::Result<Vec<String>>>()?;
+    pub fn new<P: AsRef<Path>>(path: P) -> anyhow::Result<App> {
+        let repo = crate::git::Repository::new(path)?;
+        let branches = repo.branches()?;
+
         Ok(App {
             input: String::new(),
             input_mode: InputMode::Search,
             selected: HashSet::new(),
-            _repo: crate::git::Repository::new(repo.path().to_owned())?,
             repo: repo,
             all_branches: branches.clone(),
             branches: StatefulList::with_items(branches),

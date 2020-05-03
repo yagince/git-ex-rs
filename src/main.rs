@@ -14,8 +14,6 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-use git2::Repository;
-
 use git_ex::{
     app::App,
     component,
@@ -30,10 +28,7 @@ const LIST_WIDTH_PERCENTAGE: u16 = 40;
 const LOG_LIMIT: usize = 40;
 
 fn main() -> anyhow::Result<()> {
-    let repo = Repository::open(env::current_dir()?).expect("repo not found");
-
-    // Create default app state
-    let mut app = App::new(repo)?;
+    let mut app = App::new(env::current_dir()?)?;
 
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
@@ -129,7 +124,7 @@ fn main() -> anyhow::Result<()> {
                         }
                         Command::Log => {
                             if let Some(ref branch_name) = app.selected_branch() {
-                                let commits = app._repo.logs(branch_name, LOG_LIMIT).unwrap();
+                                let commits = app.repo.logs(branch_name, LOG_LIMIT).unwrap();
                                 component::Logs::render(&mut f, commits);
                             }
                         }

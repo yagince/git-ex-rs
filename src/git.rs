@@ -25,6 +25,16 @@ impl Repository {
         })
     }
 
+    pub fn branches(&self) -> anyhow::Result<Vec<String>> {
+        self.repo
+            .branches(Some(git2::BranchType::Local))?
+            .map(|x| {
+                let (branch, _) = x?;
+                Ok(branch.name()?.unwrap().to_owned())
+            })
+            .collect()
+    }
+
     pub fn logs(&self, branch_name: &str, limit: usize) -> anyhow::Result<Vec<Commit>> {
         let branch = self
             .repo
@@ -52,5 +62,12 @@ impl Repository {
             })
             .take(limit)
             .collect())
+    }
+
+    pub fn checkout(&self, branch_name: &str) -> anyhow::Result<()> {
+        self.repo
+            .find_branch(branch_name, git2::BranchType::Local)
+            .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))
+            .map_err(Into::into)
     }
 }
