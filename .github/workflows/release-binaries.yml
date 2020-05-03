@@ -5,8 +5,6 @@ on:
     types:
       - created
 
-env:
-  RUST_VERSION: 1.43.0
 jobs:
   publish:
     runs-on: ${{ matrix.os }}
@@ -15,21 +13,42 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - macOS-latest
         target:
           - x86_64-unknown-linux-musl
           - x86_64-apple-darwin
+        rust_version:
+          - 1.43.0
+        exclude:
+          - os: macOS-latest
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: x86_64-apple-darwin
     steps:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Build release binary
+      - name: Build release binary for linux
+        if: matrix.os == 'ubuntu-latest'
         run: |
           docker run --rm -i \
             --volume ${PWD}:/root/src \
             --workdir /root/src \
-            joseluisq/rust-linux-darwin-builder:${RUST_VERSION} \
+            joseluisq/rust-linux-darwin-builder:${{ matrix.rust_version }} \
             cargo build --release --target=${{ matrix.target }} \
           && ls -al target
+
+      - uses: actions-rs/toolchain@v1
+        if: matrix.os == 'macOS-latest'
+        with:
+          toolchain: ${{ matrix.rust_version }}
+          target: ${{ matrix.target }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        if: matrix.os == 'macOS-latest'
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
 
       - name: Package release
         run: tar -czf git-ex-${{ github.event.release.tag_name }}-${{ matrix.target }}.tar.gz -C ./target/${{ matrix.target }}/release/ git-ex
