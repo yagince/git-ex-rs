@@ -1,9 +1,17 @@
 use std::path::Path;
 
+use chrono::TimeZone;
+
+pub struct Signature {
+    pub name: String,
+    pub email: String,
+}
+
 pub struct Commit {
     pub id: String,
-    pub author: String,
+    pub author: Signature,
     pub message: String,
+    pub datetime: chrono::DateTime<chrono::Local>,
 }
 
 pub struct Repository {
@@ -35,8 +43,12 @@ impl Repository {
                     .as_str()
                     .unwrap()
                     .into(),
-                author: String::default(),
+                author: Signature {
+                    name: String::from_utf8_lossy(commit.author().name_bytes()).into(),
+                    email: String::from_utf8_lossy(commit.author().email_bytes()).into(),
+                },
                 message: String::from_utf8_lossy(commit.message_bytes()).into(),
+                datetime: chrono::Local.timestamp(commit.time().seconds(), 0),
             })
             .take(limit)
             .collect())

@@ -27,7 +27,7 @@ const TOP_MARGIN: u16 = 1;
 const HELP_MESSAGE_HEIGHT: u16 = 1;
 const TEXT_INPUT_HEIGHT: u16 = 3;
 const LIST_WIDTH_PERCENTAGE: u16 = 40;
-const LOG_LIMIT: usize = 30;
+const LOG_LIMIT: usize = 40;
 
 fn main() -> anyhow::Result<()> {
     let repo = Repository::open(env::current_dir()?).expect("repo not found");

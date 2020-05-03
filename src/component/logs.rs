@@ -15,9 +15,15 @@ impl Logs {
             .into_iter()
             .flat_map(|log| {
                 vec![
+                    Text::styled(
+                        log.datetime.format("%Y/%m/%d %H:%M:%S").to_string(),
+                        Style::default().fg(Color::Cyan),
+                    ),
+                    Text::raw(" "),
                     Text::styled(log.id, Style::default().fg(Color::Yellow)),
                     Text::raw(" "),
                     Text::raw(log.message),
+
                 ]
             })
             .collect::<Vec<_>>();
@@ -27,7 +33,7 @@ impl Logs {
             .alignment(Alignment::Left)
             .wrap(true);
 
-        let area = util::centered_rect(60, 50, f.size());
+        let area = util::centered_rect(80, 70, f.size());
 
         f.render_widget(Clear, area); //this clears out the background
         f.render_widget(paragraph, area);
