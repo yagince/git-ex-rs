@@ -73,7 +73,7 @@ fn main() -> anyhow::Result<()> {
                 // branches
                 component::BranchList::render(&mut f, &chunks[0], &mut app.branches);
                 // selected
-                component::SelectedList::render(&mut f, &chunks[0], &app.selected);
+                component::SelectedList::render(&mut f, &chunks[1], &app.selected);
             }
 
             {
