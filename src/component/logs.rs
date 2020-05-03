@@ -10,7 +10,7 @@ use tui::{
 
 pub struct Logs;
 impl Logs {
-    pub fn render<B: Backend>(f: &mut Frame<B>, commits: Vec<crate::git::Log>) {
+    pub fn render<B: Backend>(f: &mut Frame<B>, commits: Vec<crate::git::Commit>) {
         let text = commits
             .into_iter()
             .flat_map(|log| {

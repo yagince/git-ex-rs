@@ -1,6 +1,6 @@
 use std::path::Path;
 
-pub struct Log {
+pub struct Commit {
     pub id: String,
     pub author: String,
     pub message: String,
@@ -17,7 +17,7 @@ impl Repository {
         })
     }
 
-    pub fn logs(&self, branch_name: &str, limit: usize) -> anyhow::Result<Vec<Log>> {
+    pub fn logs(&self, branch_name: &str, limit: usize) -> anyhow::Result<Vec<Commit>> {
         let branch = self
             .repo
             .find_branch(branch_name, git2::BranchType::Local)?;
@@ -27,7 +27,7 @@ impl Repository {
 
         Ok(revwalk
             .flat_map(|id| self.repo.find_commit(id.unwrap()))
-            .map(|commit| Log {
+            .map(|commit| Commit {
                 id: commit
                     .as_object()
                     .short_id()
