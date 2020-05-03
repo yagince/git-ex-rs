@@ -1,8 +1,9 @@
 [package]
 name = "git_ex"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["yagince <straitwalk@gmail.com>"]
 edition = "2018"
+publish = false
 
 [[bin]]
 name = "git-ex"
