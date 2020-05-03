@@ -8,8 +8,6 @@ use termion::{
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, Paragraph, Text},
     Terminal,
 };
 use unicode_width::UnicodeWidthStr;
@@ -56,24 +54,8 @@ fn main() -> anyhow::Result<()> {
                 )
                 .split(f.size());
 
-            let msg = match app.input_mode {
-                InputMode::Command(_) => "Press q or Ctrl+c to exit, e to start search mode.",
-                InputMode::Search => {
-                    "Press Esc or Ctrl+c to exit, Enter to record the message. (Help: Alt+h)"
-                }
-            };
-
-            // help message
-            let text = [Text::raw(msg)];
-            let help_message = Paragraph::new(text.iter());
-            f.render_widget(help_message, chunks[0]);
-
-            // input
-            let text = [Text::raw(&app.input)];
-            let input = Paragraph::new(text.iter())
-                .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title("Input"));
-            f.render_widget(input, chunks[1]);
+            component::DefaultHelp::render(&mut f, &chunks[0], &app.input_mode);
+            component::SearchInput::render(&mut f, &chunks[1], &app.input);
 
             {
                 // main area
@@ -89,26 +71,9 @@ fn main() -> anyhow::Result<()> {
                     .split(chunks[2]);
 
                 // branches
-                let items = List::new(app.branches.items.iter().map(Text::raw))
-                    .block(Block::default().borders(Borders::ALL).title("Branches"))
-                    .style(Style::default().fg(Color::Yellow))
-                    .highlight_style(
-                        Style::default()
-                            .fg(Color::LightGreen)
-                            .modifier(Modifier::BOLD),
-                    )
-                    .highlight_symbol("➢ ");
-                f.render_stateful_widget(items, chunks[0], &mut app.branches.state);
-
+                component::BranchList::render(&mut f, &chunks[0], &mut app.branches);
                 // selected
-                let selected = app
-                    .selected
-                    .iter()
-                    .enumerate()
-                    .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
-                let selected = List::new(selected)
-                    .block(Block::default().borders(Borders::ALL).title("Selected"));
-                f.render_widget(selected, chunks[1]);
+                component::SelectedList::render(&mut f, &chunks[0], &app.selected);
             }
 
             {
