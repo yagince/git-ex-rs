@@ -1,7 +1,4 @@
-use std::{
-    path::Path,
-    collections::HashSet,
-};
+use std::{collections::HashSet, path::Path};
 
 use crate::util::StatefulList;
 
@@ -91,6 +88,12 @@ impl App {
         self.input_mode = InputMode::Help;
     }
 
+    pub fn delete_branch_mode(&mut self) {
+        if !self.selected.is_empty() {
+            self.input_mode = InputMode::Command(Command::DeleteBranch);
+        }
+    }
+
     pub fn selected_branch(&self) -> Option<&String> {
         self.branches.selected()
     }
@@ -101,5 +104,35 @@ impl App {
             _ => {}
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_delete_branch_mode_when_empty_selected() -> anyhow::Result<()> {
+        let mut app = App::new(std::env::current_dir()?)?;
+
+        app.delete_branch_mode();
+
+        Ok(assert_ne!(
+            app.input_mode,
+            InputMode::Command(Command::DeleteBranch)
+        ))
+    }
+
+    #[test]
+    fn test_delete_branch_mode_when_not_empty_selected() -> anyhow::Result<()> {
+        let mut app = App::new(std::env::current_dir()?)?;
+        app.selected.insert("Hoge".into());
+
+        app.delete_branch_mode();
+
+        Ok(assert_eq!(
+            app.input_mode,
+            InputMode::Command(Command::DeleteBranch)
+        ))
     }
 }
