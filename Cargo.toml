@@ -1,6 +1,6 @@
 [package]
 name = "git_ex"
-version = "0.0.2-alpha.0"
+version = "0.0.2"
 authors = ["yagince <straitwalk@gmail.com>"]
 edition = "2018"
 publish = false
