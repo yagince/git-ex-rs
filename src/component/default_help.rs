@@ -1,6 +1,7 @@
 use tui::{
     backend::Backend,
     layout::Rect,
+    style::{Color, Style},
     terminal::Frame,
     widgets::{Paragraph, Text},
 };
@@ -20,7 +21,7 @@ impl DefaultHelp {
 
         // help message
         let text = [Text::raw(msg)];
-        let help_message = Paragraph::new(text.iter());
+        let help_message = Paragraph::new(text.iter()).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_message, *chunk);
     }
 }
