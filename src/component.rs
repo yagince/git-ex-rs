@@ -1,5 +1,6 @@
 pub mod branch_list;
 pub mod checkout;
+pub mod delete_branch;
 pub mod default_help;
 pub mod help;
 pub mod logs;
@@ -8,6 +9,7 @@ pub mod selected_list;
 
 pub use branch_list::BranchList;
 pub use checkout::CheckoutConfirmation;
+pub use delete_branch::DeleteBranchConfirmation;
 pub use default_help::DefaultHelp;
 pub use help::Help;
 pub use logs::Logs;

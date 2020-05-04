@@ -70,4 +70,11 @@ impl Repository {
             .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))
             .map_err(Into::into)
     }
+
+    pub fn delete_branch(&self, branch_name: &str) -> anyhow::Result<()> {
+        self.repo
+            .find_branch(branch_name, git2::BranchType::Local)
+            .and_then(|mut b| b.delete())
+            .map_err(Into::into)
+    }
 }

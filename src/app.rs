@@ -23,7 +23,9 @@ impl Command {
             Command::Checkout => {
                 Self::run_checkout(app)?;
             }
-            _ => {}
+            Command::DeleteBranch => {
+                Self::run_delete_branches(app)?;
+            }
         }
         Ok(())
     }
@@ -33,6 +35,13 @@ impl Command {
             app.repo.checkout(branch)?;
         }
         Ok(())
+    }
+
+    fn run_delete_branches(app: &App) -> anyhow::Result<()> {
+        app.selected
+            .iter()
+            .map(|x| app.repo.delete_branch(x))
+            .collect()
     }
 }
 

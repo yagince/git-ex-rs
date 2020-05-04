@@ -93,7 +93,9 @@ fn main() -> anyhow::Result<()> {
                                 component::CheckoutConfirmation::render(&mut f, branch_name);
                             }
                         },
-                        _ => {}
+                        Command::DeleteBranch => {
+                            component::DeleteBranchConfirmation::render(&mut f, &app.selected);
+                        },
                     },
                     _ => {}
                 }
@@ -166,7 +168,7 @@ fn main() -> anyhow::Result<()> {
                     Key::Alt('h') => {
                         app.help_mode();
                     }
-                    Key::Alt('d') => {
+                    Key::Ctrl('d') => {
                         app.delete_branch_mode();
                     }
                     _ => {}
