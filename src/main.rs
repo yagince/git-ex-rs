@@ -78,19 +78,19 @@ fn main() -> anyhow::Result<()> {
 
             {
                 match app.input_mode {
-                    InputMode::Command(command) => match command {
-                        Command::Help => {
-                            component::Help::render(&mut f);
+                    InputMode::Help => {
+                        component::Help::render(&mut f);
+                    }
+                    InputMode::ShowLog => {
+                        if let Some(ref branch_name) = app.selected_branch() {
+                            let commits = app.repo.logs(branch_name, LOG_LIMIT).unwrap();
+                            component::Logs::render(&mut f, commits);
                         }
+                    }
+                    InputMode::Command(command) => match command {
                         Command::Checkout => {
                             if let Some(ref branch_name) = app.selected_branch() {
                                 component::CheckoutConfirmation::render(&mut f, branch_name);
-                            }
-                        }
-                        Command::Log => {
-                            if let Some(ref branch_name) = app.selected_branch() {
-                                let commits = app.repo.logs(branch_name, LOG_LIMIT).unwrap();
-                                component::Logs::render(&mut f, commits);
                             }
                         }
                         _ => {}
@@ -165,6 +165,16 @@ fn main() -> anyhow::Result<()> {
                     }
                     Key::Alt('h') => {
                         app.help_mode();
+                    }
+                    _ => {}
+                },
+                _ => match input {
+                    Key::Char('y')
+                    | Key::Char('q')
+                    | Key::Char('\n')
+                    | Key::Esc
+                    | Key::Ctrl('n') => {
+                        app.search_mode();
                     }
                     _ => {}
                 },

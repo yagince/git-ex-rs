@@ -15,6 +15,7 @@ impl DefaultHelp {
             InputMode::Search => {
                 "Press Esc or Ctrl+c to exit, Enter to record the message. (Help: Alt+h)"
             }
+            _ => "Press Esc or q or Ctrl+c or Enter back to Search",
         };
 
         // help message

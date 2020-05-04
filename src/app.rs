@@ -9,13 +9,13 @@ use crate::util::StatefulList;
 pub enum InputMode {
     Command(Command),
     Search,
+    Help,
+    ShowLog,
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum Command {
     Checkout,
-    Log,
-    Help,
     #[allow(dead_code)]
     DeleteBranch,
 }
@@ -84,11 +84,11 @@ impl App {
     }
 
     pub fn log_mode(&mut self) {
-        self.input_mode = InputMode::Command(Command::Log);
+        self.input_mode = InputMode::ShowLog;
     }
 
     pub fn help_mode(&mut self) {
-        self.input_mode = InputMode::Command(Command::Help);
+        self.input_mode = InputMode::Help;
     }
 
     pub fn selected_branch(&self) -> Option<&String> {
