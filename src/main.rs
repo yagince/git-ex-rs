@@ -134,7 +134,13 @@ fn main() -> anyhow::Result<()> {
                     // press Enter
                     Key::Char('\n') => {
                         if let Some(x) = app.branches.selected() {
-                            app.selected.insert(x.clone());
+                            match x.as_ref() {
+                                "master" => {}
+                                _ => {
+                                    app.selected.insert(x.clone());
+                                    app.branches.next();
+                                }
+                            }
                         }
                     }
                     Key::Char(c) => {
