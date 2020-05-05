@@ -71,7 +71,12 @@ fn main() -> anyhow::Result<()> {
                     .split(chunks[2]);
 
                 // branches
-                component::BranchList::render(&mut f, &chunks[0], &mut app.branches);
+                component::BranchList::render(
+                    &mut f,
+                    &chunks[0],
+                    &mut app.branches,
+                    app.repo.current_branch().unwrap(),
+                );
                 // selected
                 component::SelectedList::render(&mut f, &chunks[1], &app.selected);
             }
@@ -92,10 +97,10 @@ fn main() -> anyhow::Result<()> {
                             if let Some(ref branch_name) = app.selected_branch() {
                                 component::CheckoutConfirmation::render(&mut f, branch_name);
                             }
-                        },
+                        }
                         Command::DeleteBranch => {
                             component::DeleteBranchConfirmation::render(&mut f, &app.selected);
-                        },
+                        }
                     },
                     _ => {}
                 }

@@ -25,6 +25,13 @@ impl Repository {
         })
     }
 
+    pub fn current_branch(&self) -> anyhow::Result<Option<String>> {
+        self.repo
+            .head()
+            .and_then(|reference| Ok(reference.shorthand().map(ToOwned::to_owned)))
+            .map_err(Into::into)
+    }
+
     pub fn branches(&self) -> anyhow::Result<Vec<String>> {
         self.repo
             .branches(Some(git2::BranchType::Local))?
