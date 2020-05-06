@@ -20,6 +20,10 @@ impl Help {
             Text::styled("Checkout Branch", Style::default().fg(Color::Green)),
             Text::raw(": Ctrl+o"),
             Text::raw("\n"),
+            // Delete Branches
+            Text::styled("Delete Branches", Style::default().fg(Color::Green)),
+            Text::raw(": Ctrl+d"),
+            Text::raw("\n"),
             // Log
             Text::styled("Show log       ", Style::default().fg(Color::Green)),
             Text::raw(": Ctrl+l"),
