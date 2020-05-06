@@ -125,7 +125,7 @@ dependencies = [
 
 [[package]]
 name = "git_ex"
-version = "0.0.3-alpha.0"
+version = "0.1.0"
 dependencies = [
  "ansi_term",
  "anyhow",
