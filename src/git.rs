@@ -78,6 +78,14 @@ impl Repository {
             .map_err(Into::into)
     }
 
+    pub fn checkout_new_branch(&self, branch_name: &str) -> anyhow::Result<git2::Branch> {
+        let oid = self.repo.head()?.target().unwrap();
+        self.repo
+            .find_commit(oid)
+            .and_then(|commit| self.repo.branch(branch_name, &commit, false))
+            .map_err(Into::into)
+    }
+
     pub fn delete_branch(&self, branch_name: &str) -> anyhow::Result<()> {
         self.repo
             .find_branch(branch_name, git2::BranchType::Local)

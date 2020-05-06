@@ -140,6 +140,13 @@ impl App {
         Ok(())
     }
 
+    pub fn start_branch(&self, opts: &crate::cmd::StartBranchOpts) -> anyhow::Result<git2::Branch> {
+        let branch = self.repo
+            .checkout_new_branch(&opts.branch_name())?;
+        self.repo.checkout(branch.name()?.unwrap())?;
+        Ok(branch)
+    }
+
     pub fn start(&mut self) -> anyhow::Result<()> {
         // Terminal initialization
         let stdout = io::stdout().into_raw_mode()?;
