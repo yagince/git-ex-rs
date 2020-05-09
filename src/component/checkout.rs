@@ -30,7 +30,7 @@ impl CheckoutConfirmation {
             .alignment(Alignment::Left)
             .wrap(true);
 
-        let area = util::centered_rect(60, 10, f.size());
+        let area = util::centered_fix_rect(100, 5, f.size());
 
         f.render_widget(Clear, area); //this clears out the background
         f.render_widget(paragraph, area);
