@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 use tui::{
     backend::Backend,
-    terminal::Frame,
     layout::Alignment,
     style::{Color, Style},
-    widgets::{Block, Borders, Clear, Paragraph, Text},
+    terminal::Frame,
+    widgets::{Block, BorderType, Borders, Clear, Paragraph, Text},
 };
 
 use crate::util;
 
 pub struct DeleteBranchConfirmation;
 impl DeleteBranchConfirmation {
-    pub fn render<B: Backend> (f: &mut Frame<B>, selected: &HashSet<String>) {
+    pub fn render<B: Backend>(f: &mut Frame<B>, selected: &HashSet<String>) {
         let mut text = vec![
             Text::raw("Would you like to "),
             Text::styled("delete branches", Style::default().fg(Color::Green)),
@@ -34,7 +34,9 @@ impl DeleteBranchConfirmation {
             .block(
                 Block::default()
                     .title("Delete Branch")
-                    .borders(Borders::ALL),
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Double)
+                    .border_style(Style::default().fg(Color::Cyan)),
             )
             .alignment(Alignment::Left)
             .wrap(true);

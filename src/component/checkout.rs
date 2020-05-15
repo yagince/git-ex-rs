@@ -1,16 +1,16 @@
 use tui::{
     backend::Backend,
-    terminal::Frame,
     layout::Alignment,
     style::{Color, Style},
-    widgets::{Block, Borders, Clear, Paragraph, Text},
+    terminal::Frame,
+    widgets::{Block, BorderType, Borders, Clear, Paragraph, Text},
 };
 
 use crate::util;
 
 pub struct CheckoutConfirmation;
 impl CheckoutConfirmation {
-    pub fn render<B: Backend> (f: &mut Frame<B>, branch_name: &str) {
+    pub fn render<B: Backend>(f: &mut Frame<B>, branch_name: &str) {
         let text = [
             Text::raw("Would you like to checkout "),
             Text::styled(branch_name.to_owned(), Style::default().fg(Color::Green)),
@@ -25,7 +25,9 @@ impl CheckoutConfirmation {
             .block(
                 Block::default()
                     .title("Checkout Branch")
-                    .borders(Borders::ALL),
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Double)
+                    .border_style(Style::default().fg(Color::Cyan)),
             )
             .alignment(Alignment::Left)
             .wrap(true);
