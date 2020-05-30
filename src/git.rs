@@ -74,8 +74,17 @@ impl Repository {
     pub fn checkout(&self, branch_name: &str) -> anyhow::Result<()> {
         self.repo
             .find_branch(branch_name, git2::BranchType::Local)
-            .and_then(|branch| self.repo.set_head(branch.get().name().unwrap()))
             .map_err(Into::into)
+            .and_then(|branch| {
+                let reference = branch.get();
+                if let Some(oid) = reference.target() {
+                    self.repo
+                        .find_object(oid, None)
+                        .and_then(|obj| self.repo.checkout_tree(&obj, None))
+                        .and_then(|_| self.repo.set_head(reference.name().unwrap()))?;
+                }
+                Ok(())
+            })
     }
 
     pub fn checkout_new_branch(&self, branch_name: &str) -> anyhow::Result<git2::Branch> {
