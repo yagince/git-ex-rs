@@ -2,15 +2,16 @@ use git_ex::{app::App, cmd::StartBranchOpts};
 use std::env;
 
 use anyhow::anyhow;
-use clap::Clap;
-#[derive(Debug, Clone, PartialEq, Clap)]
+use clap::Parser;
+
+#[derive(Debug, Clone, PartialEq, Parser)]
 #[clap(author, about, version, name = "git-ex")]
 struct Opts {
     #[clap(subcommand)]
     subcmd: Option<SubCommand>,
 }
 
-#[derive(Debug, Clone, PartialEq, Clap)]
+#[derive(Debug, Clone, PartialEq, Parser)]
 enum SubCommand {
     #[clap(name = "start")]
     StartBranch(StartBranchOpts),
@@ -33,7 +34,7 @@ fn main() -> anyhow::Result<()> {
                 let branch = app.start_branch(&opts)?;
                 println!("start: {}", branch.name()?.unwrap());
             }
-        }
+        },
     }
     Ok(())
 }

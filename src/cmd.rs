@@ -1,6 +1,6 @@
-use clap::Clap;
+use clap::Parser;
 
-#[derive(Debug, Clone, PartialEq, Clap)]
+#[derive(Debug, Clone, PartialEq, Parser)]
 pub struct StartBranchOpts {
     /// f: feature, h: hotfix, s: spark, etc...
     branch_type: BranchType,
@@ -45,13 +45,13 @@ impl std::fmt::Display for BranchType {
         match self {
             BranchType::Other(s) => {
                 write!(f, "{}", s)
-            },
+            }
             BranchType::Feature => {
                 write!(f, "feature")
-            },
+            }
             BranchType::Hotfix => {
                 write!(f, "hotfix")
-            },
+            }
             BranchType::Spark => {
                 write!(f, "spark")
             }

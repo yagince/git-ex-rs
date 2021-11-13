@@ -2,7 +2,7 @@
 name = "git_ex"
 version = "0.1.6-alpha.0"
 authors = ["yagince <straitwalk@gmail.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [[bin]]
@@ -17,4 +17,4 @@ unicode-width = "0.1"
 git2 = "0.13"
 ansi_term = "0.12"
 chrono = "0.4"
-clap = "3.0.0-beta.1"
+clap = "=3.0.0-beta.5"
