@@ -1,6 +1,6 @@
-use clap::Parser;
+use clap::Args;
 
-#[derive(Debug, Clone, PartialEq, Parser)]
+#[derive(Debug, Clone, PartialEq, Args)]
 pub struct StartBranchOpts {
     /// f: feature, h: hotfix, s: spark, etc...
     branch_type: BranchType,
